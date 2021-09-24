@@ -1,4 +1,33 @@
+import java.util.Arrays;
+
 public class MatrixCalc {
+
+    public static boolean[][] getUnitMatrix(int n){
+        boolean[][] matrix = new boolean[n][n];
+        for (var i = 0; i < n; i++){
+            for (var j = 0; j < n; j++)
+                matrix[i][j] = i == j;
+        }
+        return matrix;
+    }
+
+    public static int getCodeDistance(boolean[][] matrix){
+        int k = matrix.length;
+        int n = matrix[0].length;
+        int dist = n;
+        int temp = 0;
+        for(int i = 0; i < k; i++){
+            for(int j = i + 1; j < k; j++){
+                for(int index = 0; index < n; index++) {
+                    if (matrix[i][index] != matrix[j][index])
+                        temp++;
+                }
+                if (temp < dist) dist = temp;
+                temp = 0;
+            }
+        }
+        return dist;
+    }
 
     public static boolean[] rowMultMatr(boolean[] row, boolean[][] matrix) throws Exception {
         if(row.length != matrix.length) throw new Exception();
@@ -13,6 +42,23 @@ public class MatrixCalc {
             result[i] = val;
         }
         return result;
+    }
+
+    public static int searchRowInMatrix(boolean[] row, boolean[][] matrix){
+        for (int i = 0; i < matrix.length; i++){
+            if(Arrays.equals(row, matrix[i])) return i;
+        }
+        return -1;
+    }
+
+    public static boolean[][] matrixMultMatrix(boolean[][] matrixOne, boolean[][] matrixTwo) throws Exception {
+        int k = matrixOne.length;
+        int n = matrixTwo.length;
+        boolean[][] matrixResult = new boolean[k][n];
+        for (int i = 0; i < k; i++) {
+            matrixResult[i] = rowMultMatr(matrixOne[i], matrixTwo);
+        }
+        return matrixResult;
     }
 
     public static boolean[] rowPlusRow(boolean[] rowOne, boolean[] rowTwo) throws Exception {
