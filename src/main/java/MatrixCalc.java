@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MatrixCalc {
 
@@ -11,22 +13,55 @@ public class MatrixCalc {
         return matrix;
     }
 
-    public static int getCodeDistance(boolean[][] matrix){
+    public  static boolean[][] createAllWords(int k){
+        int wordMax = 1;
+        for(int i = 0; i < k; i++)
+            wordMax *= 2;
+        boolean[][] words = new boolean[wordMax - 1][k];
+        wordMax--;
+        for (int i = 1; i <= wordMax; i++){
+            String val = Integer.toBinaryString(i);
+            boolean[] valArr = new boolean[k];
+            for (int j = 0; j < val.length(); j++){
+                valArr[k - j - 1] = val.charAt(val.length() - 1 - j) == '1';
+            }
+            words[i - 1] = valArr;
+        }
+        return words;
+    }
+
+    public static int getCodeDistance(boolean[][] matrix) throws Exception {
         int k = matrix.length;
         int n = matrix[0].length;
+        boolean[][] allWordsSizeK = createAllWords(k);
+        boolean[][] matr = matrixMultMatrix(allWordsSizeK, matrix);
         int dist = n;
-        int temp = 0;
-        for(int i = 0; i < k; i++){
-            for(int j = i + 1; j < k; j++){
-                for(int index = 0; index < n; index++) {
-                    if (matrix[i][index] != matrix[j][index])
-                        temp++;
-                }
-                if (temp < dist) dist = temp;
-                temp = 0;
-            }
+        for (int i = 0; i < matr.length; i++){
+            int temp = wordWeight(matr[i]);
+            if(temp < dist) dist = temp;
         }
         return dist;
+    }
+
+    public static boolean[][] getDualErrors(int n) throws Exception {
+        List<boolean[]> tempMatrix = new ArrayList<boolean[]>();
+        boolean[][] unitMatrix = getUnitMatrix(n);
+        for(int i = 0; i < n; i++)
+            tempMatrix.add(unitMatrix[i]);
+        for(int i = 0; i < n - 1; i++){
+            for(int j = i + 1; j < n; j++)
+                tempMatrix.add(rowPlusRow(unitMatrix[i], unitMatrix[j]));
+        }
+        boolean[][] result = new boolean[tempMatrix.size()][n];
+        for(int i = 0; i < result.length; i++)
+            result[i] = tempMatrix.get(i);
+        return result;
+    }
+
+    public static int wordWeight(boolean[] word){
+        int weight = 0;
+        for (boolean point : word) if (point) weight++;
+        return weight;
     }
 
     public static boolean[] rowMultMatr(boolean[] row, boolean[][] matrix) throws Exception {

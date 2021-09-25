@@ -13,8 +13,6 @@ public class Main {
             System.out.println("Синдром не найден");
             return;
         }
-        System.out.print("Номер неверного разряда:");
-        System.out.println(numberError);
 
         codeWord = MatrixCalc.rowPlusRow(codeWord, matrixErrors[numberError]);
         System.out.println("Исправленное слово:");
@@ -65,7 +63,7 @@ public class Main {
         System.out.println("Матрица H: ");
         System.out.println(MatrixCalc.toString(H));
 
-        boolean[][] matrixErrors = MatrixCalc.getUnitMatrix(n);
+        boolean[][] matrixErrors = MatrixCalc.getDualErrors(n);
         boolean[][] matrixSyndromes = MatrixCalc.matrixMultMatrix(matrixErrors, H);
         System.out.println("Матрица синдромов:");
         System.out.println(MatrixCalc.toString(matrixSyndromes));
@@ -83,7 +81,7 @@ public class Main {
         System.out.println("Сформированное кодовое слово длины n:");
         System.out.println(MatrixCalc.toString(codeWord));
 
-        codeWord = MatrixCalc.rowPlusRow(codeWord, matrixErrors[Math.abs(new Random().nextInt() % n)]);
+        codeWord = MatrixCalc.rowPlusRow(codeWord, matrixErrors[1]);
 
         System.out.println("Кодовое слово с однократной ошибкой:");
         System.out.println(MatrixCalc.toString(codeWord));
@@ -103,12 +101,29 @@ public class Main {
         System.out.println("Сформированное кодовое слово длины n:");
         System.out.println(MatrixCalc.toString(newCodeWord));
 
-        newCodeWord = MatrixCalc.rowPlusRow(newCodeWord, MatrixCalc.rowPlusRow(matrixErrors[Math.abs(rand.nextInt() % (n - 1))], matrixErrors[n - 1]));
+        newCodeWord = MatrixCalc.rowPlusRow(newCodeWord, matrixErrors[50]);
 
         System.out.println("Кодовое слово с двукратной ошибкой:");
         System.out.println(MatrixCalc.toString(newCodeWord));
 
         correctionWord(newCodeWord, matrixErrors, H, matrixSyndromes);
 
+
+        System.out.println("Рандомное слово длины k:");
+        System.out.println(MatrixCalc.toString(newWord));
+
+        boolean[] thirdCodeWord;
+        thirdCodeWord = MatrixCalc.rowMultMatr(newWord, G);
+
+        System.out.println("Сформированное кодовое слово длины n:");
+        System.out.println(MatrixCalc.toString(thirdCodeWord));
+
+        thirdCodeWord = MatrixCalc.rowPlusRow(thirdCodeWord, matrixErrors[1]);
+        thirdCodeWord = MatrixCalc.rowPlusRow(thirdCodeWord, matrixErrors[50]);
+
+        System.out.println("Кодовое слово с трехкратной ошибкой:");
+        System.out.println(MatrixCalc.toString(thirdCodeWord));
+
+        correctionWord(thirdCodeWord, matrixErrors, H, matrixSyndromes);
     }
 }
