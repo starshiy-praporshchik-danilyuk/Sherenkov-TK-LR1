@@ -1,129 +1,77 @@
 import java.util.Random;
 
+import static java.lang.Math.abs;
 
 public class Main {
 
-    public static void correctionWord(boolean[] codeWord, boolean[][] matrixErrors, boolean[][] H, boolean[][] matrixSyndromes) throws Exception {
-        boolean[] syndrome = MatrixCalc.rowMultMatr(codeWord, H);
-        System.out.print("Синдром: ");
-        System.out.println(MatrixCalc.toString(syndrome));
+    public static void correctionWord(boolean[] codeWord,
+                                      boolean[][] matrixErrors,
+                                      boolean[][] H,
+                                      boolean[][] matrixSyndromes,
+                                      int errorMultiplicity) throws Exception {
 
-        int numberError = MatrixCalc.searchRowInMatrix(syndrome, matrixSyndromes);
-        if (numberError == -1) {
+        System.out.println("Кодовое слово: \n" + MatrixCalc.toString(codeWord));
+
+        var random = new Random();
+        int numberError = 0;
+        for (int i = 0; i < errorMultiplicity; i++){
+            if(i == 0) {
+                numberError = abs(random.nextInt()) % (codeWord.length - 2);
+                codeWord = MatrixCalc.rowPlusRow(codeWord, matrixErrors[numberError]);
+            }
+            else
+                codeWord = MatrixCalc.rowPlusRow(codeWord, matrixErrors[numberError + i]);
+        }
+
+        System.out.println("Слово с ошибкой кратности " + errorMultiplicity + ": \n" + MatrixCalc.toString(codeWord));
+
+        boolean[] syndrome = MatrixCalc.rowMultMatr(codeWord, H);
+
+        System.out.println("Синдром: \n" + MatrixCalc.toString(syndrome));
+
+        int numberSyndrome = MatrixCalc.searchRowInMatrix(syndrome, matrixSyndromes);
+        if (numberSyndrome == -1) {
             System.out.println("Синдром не найден");
             return;
         }
 
         codeWord = MatrixCalc.rowPlusRow(codeWord, matrixErrors[numberError]);
-        System.out.println("Исправленное слово:");
-        System.out.println(MatrixCalc.toString(codeWord));
+
+        System.out.println("Исправленное слово: \n" + MatrixCalc.toString(codeWord));
     }
 
     public static void main(String[] args) throws Exception {
-        int n = 15;
-        int k = 7;
-        int d = 5;
-        var rand = new Random();
-        boolean[][] I_k = MatrixCalc.getUnitMatrix(k);
-        boolean[][] X = new boolean[k][n - k];
-        boolean[][] G = new boolean[k][n];
+        Random random = new Random();
 
-        do {
-            for (int i = 0; i < k; i++) {
-                for (int j = 0; j < n - k; j++) {
-                    X[i][j] = rand.nextBoolean();
-                }
-            }
+        var linearCode = new LinearCode(4, true);
 
-            for (int i = 0; i < k; i++) {
-                for (int j = 0; j < n; j++) {
-                    if (j < k) {
-                        G[i][j] = I_k[i][j];
-                    } else {
-                        G[i][j] = X[i][j - k];
-                    }
-                }
-            }
-        } while (MatrixCalc.getCodeDistance(G) != d);
+        System.out.println(String.format("Код Хемминга (%d, %d, %d); G:",
+                linearCode.getN(), linearCode.getK(), MatrixCalc.getCodeDistance(linearCode.getMatrixG())) + '\n');
 
-        System.out.println("Матрица G: ");
-        System.out.println(MatrixCalc.toString(G));
-        System.out.print("Кодовое расстояние строк матрицы G: ");
-        System.out.println(MatrixCalc.getCodeDistance(G));
+        System.out.println(MatrixCalc.toString(linearCode.getMatrixG()));
+        System.out.println("Матрица H: \n" + MatrixCalc.toString(linearCode.getMatrixH()));
 
-        int m = n - k;
-        boolean[][] I_m = MatrixCalc.getUnitMatrix(m);
-        boolean[][] H = new boolean[n][m];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                if (i < k) H[i][j] = X[i][j];
-                else H[i][j] = I_m[i - k][j];
-            }
-        }
-        System.out.println("Матрица H: ");
-        System.out.println(MatrixCalc.toString(H));
+        int n = linearCode.getN();
+        int k = linearCode.getK();
 
-        boolean[][] matrixErrors = MatrixCalc.getDualErrors(n);
-        boolean[][] matrixSyndromes = MatrixCalc.matrixMultMatrix(matrixErrors, H);
-        System.out.println("Матрица синдромов:");
-        System.out.println(MatrixCalc.toString(matrixSyndromes));
+        System.out.println();
+        boolean[][] oneErrorWords = MatrixCalc.getUnitMatrix(n);
+        System.out.println("Все однократные ошибки:\n" + MatrixCalc.toString(oneErrorWords));
+        boolean[][] syndromes = MatrixCalc.matrixMultMatrix(oneErrorWords, linearCode.getMatrixH());
+        System.out.println("Синдромы:\n" + MatrixCalc.toString(syndromes));
 
-        boolean[] word = new boolean[k];
-        for (int i = 0; i < k; i++)
-            word[i] = rand.nextBoolean();
-
-        System.out.println("Рандомное слово длины k:");
-        System.out.println(MatrixCalc.toString(word));
-
-        boolean[] codeWord;
-        codeWord = MatrixCalc.rowMultMatr(word, G);
-
-        System.out.println("Сформированное кодовое слово длины n:");
-        System.out.println(MatrixCalc.toString(codeWord));
-
-        codeWord = MatrixCalc.rowPlusRow(codeWord, matrixErrors[1]);
-
-        System.out.println("Кодовое слово с однократной ошибкой:");
-        System.out.println(MatrixCalc.toString(codeWord));
-
-        correctionWord(codeWord, matrixErrors, H, matrixSyndromes);
-
-        boolean[] newWord = new boolean[k];
-        for (int i = 0; i < k; i++)
-            newWord[i] = rand.nextBoolean();
-
-        System.out.println("Рандомное слово длины k:");
-        System.out.println(MatrixCalc.toString(newWord));
-
-        boolean[] newCodeWord;
-        newCodeWord = MatrixCalc.rowMultMatr(newWord, G);
-
-        System.out.println("Сформированное кодовое слово длины n:");
-        System.out.println(MatrixCalc.toString(newCodeWord));
-
-        newCodeWord = MatrixCalc.rowPlusRow(newCodeWord, matrixErrors[50]);
-
-        System.out.println("Кодовое слово с двукратной ошибкой:");
-        System.out.println(MatrixCalc.toString(newCodeWord));
-
-        correctionWord(newCodeWord, matrixErrors, H, matrixSyndromes);
+        System.out.println("Проверка на корректность. При умножении G * H должна получиться нулевая матрица \n" +
+                MatrixCalc.toString(MatrixCalc.matrixMultMatrix(linearCode.getMatrixG(), linearCode.getMatrixH())));
 
 
-        System.out.println("Рандомное слово длины k:");
-        System.out.println(MatrixCalc.toString(newWord));
 
-        boolean[] thirdCodeWord;
-        thirdCodeWord = MatrixCalc.rowMultMatr(newWord, G);
+        boolean[] word = linearCode.getMatrixG()[abs(random.nextInt() % k)];
 
-        System.out.println("Сформированное кодовое слово длины n:");
-        System.out.println(MatrixCalc.toString(thirdCodeWord));
+        correctionWord(word, oneErrorWords, linearCode.getMatrixH(), syndromes, 1);
+        System.out.println();
+        correctionWord(word, oneErrorWords, linearCode.getMatrixH(), syndromes, 2);
+        System.out.println();
+        correctionWord(word, oneErrorWords, linearCode.getMatrixH(), syndromes, 3);
 
-        thirdCodeWord = MatrixCalc.rowPlusRow(thirdCodeWord, matrixErrors[1]);
-        thirdCodeWord = MatrixCalc.rowPlusRow(thirdCodeWord, matrixErrors[50]);
-
-        System.out.println("Кодовое слово с трехкратной ошибкой:");
-        System.out.println(MatrixCalc.toString(thirdCodeWord));
-
-        correctionWord(thirdCodeWord, matrixErrors, H, matrixSyndromes);
     }
 }

@@ -1,8 +1,21 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 public class MatrixCalc {
+
+    public static boolean[][] generateRandMatrix(int n, int k){
+        var rand = new Random();
+        boolean[][] A = new boolean[k][n];
+
+        for (int i = 0; i < k; i++) {
+            for (int j = 0; j < n; j++) {
+                A[i][j] = rand.nextBoolean();
+            }
+        }
+        return A;
+    }
 
     public static boolean[][] getUnitMatrix(int n){
         boolean[][] matrix = new boolean[n][n];
@@ -13,7 +26,7 @@ public class MatrixCalc {
         return matrix;
     }
 
-    public  static boolean[][] createAllWords(int k){
+    public static boolean[][] createAllWords(int k){
         int wordMax = 1;
         for(int i = 0; i < k; i++)
             wordMax *= 2;

@@ -1,136 +1,77 @@
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Data
 public class LinearCode {
 
-    private int n, k;
+    private int n, k, d, r;
     private boolean[][] matrixG;
-    private boolean[][] matrixX;
     private boolean[][] matrixH;
-    private boolean[][] words;
 
-    public LinearCode(boolean[][] matrix) throws Exception {
-        this.matrixG = matrix;
-        this.k = matrix.length;
-        this.n = matrix[0].length;
-        MatrixCalc.Rref(this.matrixG);
-        boolean flag = false;
-        for(int i = k - 1; i >= 0; i--){
-            for (int j = 0; j < n; j++)
-                if (this.matrixG[i][j]) flag = true;
-            if(!flag) {
-                this.k--;
-            }
-            else break;
-        }
-        if(k != matrixG.length){
-            boolean[][] newMatrixG = new boolean[k][n];
-            for (int i = 0; i < k; i++){
-                newMatrixG[i] = this.matrixG[i];
-            }
-            this.matrixG = newMatrixG;
-        }
-        this.matrixX = this.createMatrixX();
-        this.matrixH = this.createMatrixH();
-        this.words = this.createWords();
-    }
+    public LinearCode(int r, boolean extended) {
+        this.r = r;
+        int temp = 2;
+        for (int i = 0; i < r-1; i++)
+            temp *= 2;
+        this.n = temp - 1;
+        this.k = this.n - r;
+        this.d = 3;
+        this.matrixH = MatrixCalc.createAllWords(r);
 
-    public int getCodeDistance(){
-        int dist = n;
-        int temp = 0;
-        for(int i = 0; i < this.words.length; i++){
-            for(int j = i + 1; j < this.words.length; j++){
-                for(int index = 0; index < n; index++) {
-                    if (this.words[i][index] != this.words[j][index])
-                        temp++;
-                }
-                if (temp < dist) dist = temp;
-                temp = 0;
-            }
-        }
-        return dist;
-    }
-
-    private boolean[][] createMatrixX() {
-        List<Integer> lead = this.getLeadRows();
-        boolean[][] X = new boolean[k][n - lead.size()];
-        int q = 0;
-        for (int i = 0; i < n; i++){
-            if(lead.contains(i)) continue;
-            for (int j = 0; j < k; j++){
-                X[j][q] = this.matrixG[j][i];
-            }
-            q++;
-        }
-        return X;
-    }
-
-    private boolean[][] createMatrixH() {
-        List<Integer> lead = this.getLeadRows();
-
-        int columnsH = this.matrixX[0].length;
-        boolean[][] I = new boolean[columnsH][columnsH];
-        for (int i = 0; i < columnsH; i++){
-            for(int j = 0; j < columnsH; j++){
-                I[i][j] = i == j;
+        int q = n - 1;
+        for(int i = 0; i < n - r; i++){
+            if (MatrixCalc.wordWeight(this.matrixH[i]) == 1) {
+                MatrixCalc.swapRow(this.matrixH, i, q);
+                q--;
             }
         }
 
-        int rowsH = this.matrixX.length + I.length;
-
-        boolean[][] H = new boolean[rowsH][columnsH];
-        int iterX = 0;
-        int iterI = 0;
-        for (int i = 0; i < rowsH; i++){
-            if(lead.contains(i)) {
-                H[i] = this.matrixX[iterX];
-                iterX++;
-            }
-            else {
-                H[i] = I[iterI];
-                iterI++;
-            }
-        }
-
-        return H;
-    }
-
-    private boolean[][] createWords() throws Exception {
-        int wordMax = 1;
-        for(int i = 0; i < k; i++)
-            wordMax *= 2;
-        wordMax--;
-        List<boolean[]> words = new ArrayList<boolean[]>();
-        for (int i = 0; i <= wordMax; i++){
-            String val = Integer.toBinaryString(i);
-            boolean[] valArr = new boolean[k];
-            for (int j = 0; j < val.length(); j++){
-                valArr[k - j - 1] = val.charAt(val.length() - 1 - j) == '1';
-            }
-            words.add(valArr);
-        }
-
-        boolean[][] resultWords = new boolean[words.size()][this.n];
-        for(int i = 0; i < words.size(); i++)
-            resultWords[i] = MatrixCalc.rowMultMatr(words.get(i), this.matrixG);
-
-        return resultWords;
-    }
-
-    private List<Integer> getLeadRows(){
-        List<Integer> lead = new ArrayList<Integer>();
+        this.matrixG = new boolean[this.k][this.n];
+        boolean[][] unitMatrix = MatrixCalc.getUnitMatrix(k);
         for (int i = 0; i < k; i++){
             for (int j = 0; j < n; j++){
-                if(this.matrixG[i][j]){
-                    lead.add(j);
-                    break;
-                }
+                if (j < k)
+                    this.matrixG[i][j] = unitMatrix[i][j];
+                else
+                    this.matrixG[i][j] = this.matrixH[i][j - k];
             }
         }
-        return lead;
+
+        if (extended) {
+            generateExtendedMatrixG();
+            this.generateExtendedMatrixH();
+            this.n++;
+            this.r++;
+        }
+    }
+
+    private void generateExtendedMatrixG(){
+        boolean[][] newG = new boolean[this.k][this.n + 1];
+        for (int i = 0; i < k; i++){
+            for (int j = 0; j < n + 1; j++){
+                if(j != n)
+                    newG[i][j] = this.matrixG[i][j];
+                else
+                    newG[i][j] = false;
+            }
+        }
+
+        for (int i = 0; i < k; i++){
+            if(MatrixCalc.wordWeight(newG[i]) % 2 == 1)
+                newG[i][n] = true;
+        }
+        this.matrixG = newG;
+    }
+
+    private void generateExtendedMatrixH(){
+        boolean[][] newH = new boolean[n + 1][this.r + 1];
+        for (int i = 0; i < n + 1; i++){
+            for (int j = 0; j < r + 1; j++){
+                if (i < n && j < r)
+                    newH[i][j] = this.matrixH[i][j];
+                else newH[i][j] = j == r;
+            }
+        }
+        this.matrixH = newH;
     }
 
 }
