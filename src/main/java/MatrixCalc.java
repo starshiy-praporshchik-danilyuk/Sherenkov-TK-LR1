@@ -26,6 +26,71 @@ public class MatrixCalc {
         return matrix;
     }
 
+    public static int[][] getUnitMatrixInteger(int n){
+        int[][] matrix = new int[n][n];
+        for (var i = 0; i < n; i++){
+            for (var j = 0; j < n; j++)
+                matrix[i][j] = i == j ? 1 : 0;
+        }
+        return matrix;
+    }
+
+    public static int[][] multMatrixByCronecker(int[][] matrOne, int[][] matrTwo){
+        int n1 = matrOne.length;
+        int n2 = matrTwo.length;
+        int[][] result = new int[n1 * n2][n1 * n2];
+        for (int i = 0; i < n1; i++) {
+            for (int k = 0; k < n1; k++) {
+                for (int j = 0; j < n2; j++) {
+                    for (int l = 0; l < n2; l++) {
+                        result[i * n2 + j][k * n2 + l] = matrOne[i][k] * matrTwo[j][l];
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public static int[] rowMultMatrixInteger(int[] row, int[][] matrix){
+        int[] result = new int[matrix[0].length];
+        for (int i = 0; i < result.length; i++){
+            int temp = 0;
+            for(int j = 0; j < row.length; j++){
+                temp += row[j] * matrix[i][j];
+            }
+            result[i] = temp;
+        }
+        return result;
+    }
+
+    public static void outMatrixToConsole(int[][] matrix){
+        for(int i = 0; i < matrix.length; i++){
+            for(int j = 0; j < matrix[i].length; j++){
+                System.out.print(matrix[i][j] + "\t");
+            }
+            System.out.println();
+        }
+    }
+
+    public static void outWordToConsole(int[] row){
+        for(int i = 0; i < row.length; i++)
+            System.out.print(row[i] + "\t");
+        System.out.println();
+
+    }
+
+    public static ArrayList<boolean[]> createAllWordsLengthByAndWeightBy(int length, int weight){
+        boolean[][] allWords = createAllWords(length);
+
+        ArrayList<boolean[]> result = new ArrayList<>();
+        for(int i = 0; i < allWords.length; i++){
+            if(MatrixCalc.wordWeight(allWords[i]) == weight)
+                result.add(allWords[i]);
+        }
+
+        return result;
+    }
+
     public static boolean[][] createAllWords(int k){
         int wordMax = 1;
         for(int i = 0; i < k; i++)
@@ -43,7 +108,7 @@ public class MatrixCalc {
         return words;
     }
 
-    public static int getCodeDistance(boolean[][] matrix) throws Exception {
+    /*public static int getCodeDistance(boolean[][] matrix) throws Exception {
         int k = matrix.length;
         int n = matrix[0].length;
         boolean[][] allWordsSizeK = createAllWords(k);
@@ -54,7 +119,7 @@ public class MatrixCalc {
             if(temp < dist) dist = temp;
         }
         return dist;
-    }
+    }*/
 
     public static boolean[][] getDualErrors(int n) throws Exception {
         List<boolean[]> tempMatrix = new ArrayList<boolean[]>();
