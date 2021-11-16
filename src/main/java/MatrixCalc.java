@@ -95,15 +95,28 @@ public class MatrixCalc {
         int wordMax = 1;
         for(int i = 0; i < k; i++)
             wordMax *= 2;
-        boolean[][] words = new boolean[wordMax - 1][k];
         wordMax--;
-        for (int i = 1; i <= wordMax; i++){
+        boolean[][] words = new boolean[wordMax + 1][k];
+        for (int i = 0; i <= wordMax; i++){
             String val = Integer.toBinaryString(i);
             boolean[] valArr = new boolean[k];
             for (int j = 0; j < val.length(); j++){
-                valArr[k - j - 1] = val.charAt(val.length() - 1 - j) == '1';
+                valArr[k - j - 1] = val.charAt(val.length() - j - 1) == '1';
             }
-            words[i - 1] = valArr;
+            words[i] = valArr;
+        }
+        return words;
+    }
+
+    public static boolean[][] createAllReverseWords(int k){
+        boolean[][] words = createAllWords(k);
+        for (int i = 0; i < words.length; i++){
+            for (int j = 0; j < words[i].length / 2; j++){
+                if (words[i][j] != words[i][words[i].length - j - 1]){
+                    words[i][j] = !words[i][j];
+                    words[i][words[i].length - j - 1] = !words[i][words[i].length - j - 1];
+                }
+            }
         }
         return words;
     }
@@ -174,6 +187,14 @@ public class MatrixCalc {
         return matrixResult;
     }
 
+    public static boolean equalsRows(int[] rowOne, int[] rowTwo){
+        if(rowOne.length != rowTwo.length) return false;
+        for (int i = 0; i < rowOne.length; i++)
+            if (rowOne[i] != rowTwo[i])
+                return false;
+        return true;
+    }
+
     public static boolean[] rowPlusRow(boolean[] rowOne, boolean[] rowTwo) throws Exception {
         if(rowOne.length != rowTwo.length) throw new Exception();
         boolean[] rowResult = new boolean[rowOne.length];
@@ -184,6 +205,13 @@ public class MatrixCalc {
                 rowResult[i] = true;
         }
         return rowResult;
+    }
+
+    public static boolean[] rowsAnd(boolean[] rowOne, boolean[] rowTwo){
+        boolean[] result = new boolean[rowOne.length];
+        for(int i = 0; i < rowOne.length; i++)
+            result[i] = rowOne[i] & rowTwo[i];
+        return result;
     }
 
     public static void swapRow(boolean[][] matrix, int i, int j){
